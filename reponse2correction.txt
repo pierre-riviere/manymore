@@ -1,0 +1,43 @@
+<?php
+
+    /**
+     * Liste des infos personnes
+     * @param string|null $order
+     * @param array $excludeType
+     * @return array
+     */
+    public static function ListInfos(string|null $order = null, array $excludeType = []): array
+    {
+        $infos = array();
+        static::$_collaborateur;
+        $mysqli = DbService::getDBWrite();
+      
+        $queryOrder = $order;
+        if ($order === 'nb_infos') {
+            $queryOrder = 'COUNT (pi.id_personne) DESC';
+        } else if ($order === 'type_personne') {
+            $queryOrder = 'pil.personne';
+        } else if (!in_array($order, array('type', 'raw_values'))) {
+            $queryOrder = 'pil.libelle';
+        }
+      
+        $sqlExcludeType = !empty($excludeType) ? ' AND pil.type NOT IN (' . implode(',', array_cast($excludeType, 'int')) . ') ' : '';
+
+        $query = '
+            SELECT pil.id
+            FROM personne_infos_libelle AS pil
+                LEFT JOIN personne_infos AS pi ON pi.info = pil.id
+                    AND pi.cgp = pil.cgp
+            WHERE ( pil.cgp = ' . (static::$_collaborateur?->cgp_id ? $mysqli->escapeString(static::$_collaborateur->cgp_id) : 'NULL') . '
+                OR pil.cgp IS NULL )
+            AND pil.personne < 3
+            ' . $sqlExcludeType . '
+            GROUP BY pil.id
+            ' . (empty($queryOrder) ? '' : 'ORDER BY ' . $queryOrder);
+      
+        $res = DbService::query($query);
+        while ($row = $res->fetch_assoc()) {
+          $infos[$row['id']] = new PersonneInfo($row['id']);
+        }
+        return $infos;
+    }

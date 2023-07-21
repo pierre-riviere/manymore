@@ -1,0 +1,56 @@
+<?php
+
+    public static function ListInfos($order = null, $excludeType = array()){ // Review : typer les params et retour.
+        global $_collaborateur; // Review : est-il possible d'encapsuler et de récupérer $_collaborateur via une méthode utile/service ?
+        $mysqli = getDBWrite();
+        
+        if (!in_array($order, array('type', 'raw_values', 'type_personne', 'nb_infos'))) {
+            $order = 'personne_infos_libelle.libelle'; // Review : on devrait utiliser une autre variable pour différencier du $order provenant du param (ex: $queryOrder).
+        }
+        
+        /* 
+            Review : 
+                - préferer le check avec type '===' au lieu de '=='
+                - les deux if suivants peuvent être déplacés avant le tout premier if
+        */
+        if ($order == 'nb_infos') {
+            $order = 'COUNT (personne_infos.id_personne) DESC';
+        }
+        
+        if ($order == 'type_personne') {
+            $order = 'personne_infos_libelle.personne';
+        }
+        
+        $sqlExcludeType = '';
+        
+        if (is_array($excludeType) && count($excludeType) > 0) {
+            $sqlExcludeType = ' AND personne_infos_libelle.type NOT IN (' . implode(',', array_cast($excludeType, 'int')) . ') ';
+        }
+        
+        /* 
+            Review : 
+                - encapsuler dans une méthode (que l'on nommerait escapeString par ex) de DbService toutes les fonctions de sécurisation/formatage : real_escape_string.
+                - mieux indenter le sql, utiliser des alias pour la visibilité si grosse requête.
+                - erreur sql si $order vaut 'type' ou 'raw_values', à moins que 'type' et 'raw_values' soient des colonnes qui sont pas à la fois dans les tables personne_infos et personne_infos_libelle
+                - gérer le cas où $_collaborateur?->cgp_id n'existe pas / n'est pas définie.
+                - en considérant que ListInfos est appelé dans un try/catch sinon le rajouter dans cette méthode.
+                - dans le cas du framework Symfony, on pourrait utiliser du dql
+        */
+        $query = 'SELECT personne_infos_libelle.id
+                    FROM personne_infos_libelle
+                            LEFT JOIN personne_infos ON personne_infos.info = personne_infos_libelle.id
+                                    AND personne_infos.cgp = personne_infos_libelle.cgp
+                    WHERE ( personne_infos_libelle.cgp = ' . $mysqli->real_escape_string($_collaborateur->cgp_id) . '
+                            OR personne_infos_libelle.cgp IS NULL)
+                        AND personne_infos_libelle.personne < 3
+                    ' . $sqlExcludeType . '
+                GROUP BY personne_infos_libelle.id
+                ORDER BY ' . $order;
+        
+        $res = query($query); // Review : il faudrait utiliser un service DbService pour récupérer l'instance de connexion et fournir des méthodes utiles d'écriture/lecture de la base.
+        $infos = array();
+        while ($row = $res->fetch_assoc()) {
+            $infos[$row['id']] = new PersonneInfo($row['id']); // Review : s'agit-il de récupérer les infos de chaque personne personne_info? Si oui, alors on peut récupérer les infos directement via la requête ci-dessus en renseignant dans le select les colonnes qu'on souhaite récupérées
+        }
+        return $infos;
+    }

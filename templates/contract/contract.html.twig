@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% set title = "Contrat " ~ contract.libel %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+<div>
+    <h1>{{ title }}</h1>
+    <ul>
+        <li>
+            Client : {{ contract.client_lastname|upper }} {{ contract.client_firstname }}
+        </li>
+        <li>
+            Nature : {{ contract.nature }}
+        </li>
+        <li>
+            Date d'ouverture : {{ contract.open_date|format_datetime(locale='fr', pattern="d MMMM YYYY") }}
+        </li>
+        <li>
+            Valorisation : {{ contract.valorisation|format_currency('EUR', locale='fr') }}
+        </li>
+    </ul>
+</div>
+{% endblock %}

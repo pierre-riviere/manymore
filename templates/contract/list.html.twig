@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des contrats{% endblock %}
+
+{% block body %}
+{% set isAdmin = is_granted('ROLE_ADMIN')%}
+<div>
+    <h1>Contrats</h1>
+    <table>
+        <thead>
+            <tr>
+                <td>
+                    <strong>Contrat</strong>
+                </td>
+                <td>
+                    <strong>Client</strong>
+                </td>
+                {% if isAdmin %}
+                <td>
+                    <strong>Utilisateur rattaché</strong>
+                </td>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for contract in contracts %}
+                <tr>
+                    <td><a href="{{ path('app_contract_one', {'id' : contract.id}) }}">{{ contract.libel }} ({{ contract.nature}})</a></td>
+                    <td title="né(e) le {{ contract.birthday|date('d/m/Y') }}">{{ contract.client_lastname }} {{ contract.client_firstname }}</td>
+                    {% if isAdmin %}
+                    <td>{{ contract.user_lastname }} {{ contract.user_firstname }}</td>
+                    {% endif %}
+                </td>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

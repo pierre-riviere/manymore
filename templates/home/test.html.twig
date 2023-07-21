@@ -1,0 +1,52 @@
+{% for situ_profil in situ_compartiment.profils %}
+
+    {% if situ_profil.profil is defined and situ_profil.profil.libelle is not null %}
+        {% set situClassLevel = 2 %}
+        <tr class="row-collapse level-1">
+            <td colspan="11">
+                <span>Profil : </span>{{ situ_profil.profil.libelle }}
+            </td>
+        </tr>
+    {% else %}
+        {% set situClassLevel = 1 %}
+    {% endif %}
+    
+    {% set situTotalMontant = 0 %}
+    {% for situation in situ_profil.situations %}
+        {% set situTotalMontant = situTotalMontant + situation.montant %}
+        <tr class="level-{{ situClassLevel }}">
+            <td class="pack-support">
+                {{ situation.support }}
+            </td>
+            <td class="edit-show">
+            </td>
+            <td>{{ situation.classe_actifs }}</td>
+            <td class="table-numeric">{{ situation.nb_parts | number_format(3, ',', ' ') }}</td>
+            <td class="table-numeric text-nowrap">{{ situation.val_liquid | money(2)}}</td>
+            <td class="table-numeric text-nowrap">{{ situation.montant | money(2)}}</td>
+
+            <td class="table-numeric text-nowrap">
+                {{ situation.pma | money(2)}}
+            </td>
+            <td class="table-numeric text-nowrap">
+                <strong class="{{ situation.plus_value >= 0 ? 'text-success': 'text-danger' }}">
+                    {{ situation.plus_value | money(2) }}
+                </strong>
+            </td>
+            <td class="table-numeric text-nowrap">
+                <strong class="{{ situation.plus_value_percent >= 0 ? 'text-success': 'text-danger' }}">
+                    {{ situation.plus_value_percent | percent(2, '-', 0) }}
+                </strong>
+            </td>
+            <td>{{ situation.date | date('d/m/Y')}}</td>
+        </tr>
+    {% endfor %}
+
+    <tr class="active">
+        <td colspan="5">TOTAL</td>
+        <td class="table-numeric money-content">
+            {{ situTotalMontant | money(2) }}
+        </td>
+        <td colspan="5"></td>
+    </tr>
+{% endfor %}

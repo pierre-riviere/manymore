@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}Welcome!{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text></svg>">
+
+        <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}">
+
+        {% block stylesheets %}
+        {% endblock %}
+
+        {% block javascripts %}
+        {% endblock %}
+    </head>
+    <body>
+        <div class="mb-3">
+            <div><a href="{{ path('app_home') }}">Accueil</a></div>
+            {% if app.user %}
+            <div><a href="{{ path('app_contract_list') }}">Contrats</a></div>
+            <div>Vous êtes connecté(e) comme <strong>{{ app.user.userIdentifier }}</strong>, <a href="{{ path('app_logout') }}">Me déconnecter</a></div>
+            {% else %}
+                {% if app.request.get('_route') != 'app_login' %}
+                <div><a href="{{ path('app_login') }}">Me connecter</a></div>
+                {% endif %}
+                {% if app.request.get('_route') != 'app_register' %}
+                <div><a href="{{ path('app_register') }}">Inscription</a></div>
+                {% endif %}
+            {% endif %}
+        <div>
+
+        {% block body %}{% endblock %}
+    </body>
+</html>
